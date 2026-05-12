@@ -10,6 +10,8 @@ export default function App() {
   const [recordings, setRecordings] = useState([]);
   const [activeRecording, setActiveRecording] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const audioRef = useRef(null);
@@ -58,11 +60,23 @@ export default function App() {
     }
   };
 
+  const setupAudio = (blob) => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    
+    audio.ontimeupdate = () => setCurrentTime(audio.currentTime);
+    audio.onloadedmetadata = () => setDuration(audio.duration);
+    audio.onended = () => setIsPlaying(false);
+    
+    audioRef.current = audio;
+  };
+
   const togglePlay = () => {
     if (!audioRef.current && activeRecording?.audioBlob) {
-      const url = URL.createObjectURL(activeRecording.audioBlob);
-      audioRef.current = new Audio(url);
-      audioRef.current.onended = () => setIsPlaying(false);
+      setupAudio(activeRecording.audioBlob);
     }
     
     if (isPlaying) {
@@ -73,11 +87,27 @@ export default function App() {
     setIsPlaying(!isPlaying);
   };
 
+  const handleSeek = (e) => {
+    const time = parseFloat(e.target.value);
+    setCurrentTime(time);
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+    }
+  };
+
+  const formatPlayerTime = (time) => {
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
       setIsPlaying(false);
+      setCurrentTime(0);
+      setDuration(0);
     }
   }, [activeRecording]);
 
@@ -162,15 +192,24 @@ export default function App() {
               <div className="flex items-center gap-6 p-6 bg-white/5 rounded-[32px] border border-white/5">
                 <button 
                   onClick={togglePlay}
-                  className="w-16 h-16 bg-white text-black rounded-2xl flex items-center justify-center hover:scale-105 transition-transform"
+                  className="w-16 h-16 bg-white text-black rounded-2xl flex items-center justify-center hover:scale-105 transition-transform shrink-0"
                 >
                   {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
                 </button>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-500 mb-1">Длительность: {activeRecording.duration}</div>
-                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-white w-full rounded-full opacity-30" />
+                <div className="flex-1 space-y-2">
+                  <div className="flex justify-between text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                    <span>{formatPlayerTime(currentTime)}</span>
+                    <span>{formatPlayerTime(duration)}</span>
                   </div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max={duration || 0} 
+                    step="0.01"
+                    value={currentTime}
+                    onChange={handleSeek}
+                    className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-white hover:accent-gray-300 transition-all"
+                  />
                 </div>
               </div>
 
