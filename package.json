@@ -10,12 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "base-64": "^1.0.0",
+    "buffer": "^6.0.3",
     "clsx": "^2.1.1",
     "dexie": "^4.4.2",
+    "expo-updates": "^55.0.22",
+    "firebase": "^12.13.0",
     "lucide-react": "^1.14.0",
     "openai": "^6.37.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
     "recharts": "^3.8.1",
     "tailwind-merge": "^3.6.0"
   },
