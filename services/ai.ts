@@ -10,9 +10,6 @@ const BLACKLIST: string[] = [];
 const GROQ_API_KEY = process.env.EXPO_PUBLIC_GROQ_API_KEY; // Ключ из Expo.env
 
 export async function analyzeSpeech(audioUri: string) { // Теперь принимаем URI файла
-  if (!GROQ_API_KEY) {
-    throw new Error("GROQ API Key не найден. Проверьте EXPO_PUBLIC_GROQ_API_KEY в .env");
-  }
 
   // Для React Native нужен специальный baseURL для Groq
   const client = new OpenAI({

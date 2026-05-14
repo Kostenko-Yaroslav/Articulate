@@ -1,19 +1,23 @@
-from rest_framework import serializers, viewsets, permissions
-from .models import Recording
+from rest_framework import serializers
 from django.contrib.auth.models import User
+from .models import Recording
+
+class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'password']
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            password=validated_data['password']
+        )
+        return user
 
 class RecordingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recording
         fields = '__all__'
         read_only_fields = ('user',)
-
-class RecordingViewSet(viewsets.ModelViewSet):
-    serializer_class = RecordingSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Recording.objects.filter(user=self.request.user).order_by('-date')
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
